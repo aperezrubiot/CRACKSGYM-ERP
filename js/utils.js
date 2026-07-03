@@ -176,6 +176,77 @@ function guardarGastosSimulados(lista) {
   localStorage.setItem(CLAVE_GASTOS_SIMULADOS, JSON.stringify(lista));
 }
 
+/* ---------------------------------------------------------------------
+   Parámetros actuales del Simulador — se guardan solos al cambiar
+   cualquier input, para que NO se reinicien a cero al navegar entre
+   páginas o recargar. Antes de este fix, esto causaba que el Simulador
+   se viera "roto" (todo en $0.00) cada vez que volvías a entrar.
+   --------------------------------------------------------------------- */
+const CLAVE_PARAMETROS_SIMULADOR = 'cracksgym_parametros_simulador';
+
+const PARAMETROS_SIMULADOR_DEFAULT = {
+  inscritos: 0,
+  meta: 500,          // Meta de preventa según Brief Ejecutivo (500 en 2 meses)
+  precio: 399,         // Precio preventa domiciliado según Brief Ejecutivo
+  pctDomiciliados: 81.3,
+  pctComisionDom: 2.5,
+  pctComisionNoDom: 3.5
+};
+
+function guardarParametrosSimulador(parametros) {
+  localStorage.setItem(CLAVE_PARAMETROS_SIMULADOR, JSON.stringify(parametros));
+}
+
+function obtenerParametrosSimulador() {
+  try {
+    const crudo = localStorage.getItem(CLAVE_PARAMETROS_SIMULADOR);
+    return crudo ? { ...PARAMETROS_SIMULADOR_DEFAULT, ...JSON.parse(crudo) } : { ...PARAMETROS_SIMULADOR_DEFAULT };
+  } catch {
+    return { ...PARAMETROS_SIMULADOR_DEFAULT };
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Corrida Financiera — modelo de cohortes mes a mes (preventa + operación),
+   para estimar cuándo se recupera la inversión. Vive en localStorage,
+   separado de los parámetros del Simulador simple.
+   --------------------------------------------------------------------- */
+const CLAVE_CORRIDA_FINANCIERA = 'cracksgym_corrida_financiera';
+
+const CORRIDA_DEFAULT = {
+  // Cohortes explícitas que ya definiste (mes relativo a apertura = 0)
+  cohortesBase: [
+    { mes: -2, precio: 399, nuevos: 300 },
+    { mes: -1, precio: 499, nuevos: 200 },
+    { mes: 0, precio: 599, nuevos: 0 },
+    { mes: 1, precio: 599, nuevos: 100 }
+  ],
+  tasaRenovacion: 70,        // % que renueva mes a mes desde la apertura en adelante
+  nuevosConstante: 140,      // calculado para llegar a 1500 en el mes 12, con contrato forzoso en domiciliados
+  metaSociosMes12: 1500,
+  precioEstandar: 599,       // precio de cohortes nuevas desde el mes 2, y precio post-bloqueo
+  bloqueoPrecioMeses: 12,    // meses que se respeta el precio de entrada
+  pctDomiciliados: 75,
+  pctComisionDom: 2.5,
+  pctComisionNoDom: 3.5,
+  pctGastosPreventa: 30,     // % de los gastos operativos normales durante meses -2 y -1
+  inversionTotal: 10000000,
+  horizonteMeses: 36
+};
+
+function obtenerCorridaFinanciera() {
+  try {
+    const crudo = localStorage.getItem(CLAVE_CORRIDA_FINANCIERA);
+    return crudo ? { ...CORRIDA_DEFAULT, ...JSON.parse(crudo) } : { ...CORRIDA_DEFAULT };
+  } catch {
+    return { ...CORRIDA_DEFAULT };
+  }
+}
+
+function guardarCorridaFinanciera(config) {
+  localStorage.setItem(CLAVE_CORRIDA_FINANCIERA, JSON.stringify(config));
+}
+
 /** Suma los montos de los registros cuyo mes/año coincide con el indicado. */
 function sumarPorMes(registros, anio, mes) {
   return registros.reduce((total, registro) => {

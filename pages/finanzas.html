@@ -99,118 +99,116 @@
 
         <div class="dashboard-error" id="financeError"><span></span></div>
 
-        <!-- KPIs del mes -->
-        <section class="kpi-grid">
-          <div class="card kpi-card">
-            <span class="kpi-label">Ingresos del mes</span>
-            <span class="kpi-value loading" id="kpiIngresos-valor">Cargando…</span>
-            <span class="kpi-delta loading" id="kpiIngresos-delta">—</span>
-          </div>
+        <nav class="subtabs-nav" id="finSubtabs">
+          <button class="subtab-btn" data-subtab="resumen">Resumen</button>
+          <button class="subtab-btn" data-subtab="gastos">Gastos</button>
+          <button class="subtab-btn" data-subtab="movimientos">Movimientos</button>
+          <button class="subtab-btn" data-subtab="presupuesto">Presupuesto</button>
+        </nav>
 
-          <div class="card kpi-card">
-            <span class="kpi-label">Egresos del mes</span>
-            <span class="kpi-value loading" id="kpiEgresos-valor">Cargando…</span>
-            <span class="kpi-delta loading" id="kpiEgresos-delta">—</span>
-          </div>
+        <!-- ============ PESTAÑA: RESUMEN ============ -->
+        <div data-subtab-panel="resumen" class="subtab-panel">
 
-          <div class="card kpi-card">
-            <span class="kpi-label">Utilidad neta</span>
-            <span class="kpi-value loading" id="kpiUtilidad-valor">Cargando…</span>
-            <span class="kpi-delta loading" id="kpiUtilidad-delta">—</span>
-            <span class="kpi-context" id="kpiMargenContexto"></span>
-          </div>
-
-          <div class="card kpi-card">
-            <span class="kpi-label">Punto de equilibrio (aprox.)</span>
-            <span class="kpi-value loading" id="kpiEquilibrio-valor">Cargando…</span>
-            <span class="kpi-delta loading" id="kpiEquilibrio-delta">—</span>
-            <span class="kpi-context">% de egresos cubiertos por ingresos</span>
-          </div>
-        </section>
-
-        <!-- Gráfica anual + Caja -->
-        <section class="finance-grid">
-          <div class="card chart-card">
-            <div class="chart-card-header">
-              <h3>Tendencia anual — Ingresos vs Egresos</h3>
-              <span class="text-tertiary" style="font-size: var(--text-xs);">Últimos 12 meses</span>
+          <section class="kpi-grid">
+            <div class="card kpi-card">
+              <span class="kpi-label">Ingresos del mes</span>
+              <span class="kpi-value loading" id="kpiIngresos-valor">Cargando…</span>
+              <span class="kpi-delta loading" id="kpiIngresos-delta">—</span>
             </div>
-            <div class="chart-canvas-wrap">
-              <canvas id="graficaAnual"></canvas>
+
+            <div class="card kpi-card">
+              <span class="kpi-label">Egresos del mes</span>
+              <span class="kpi-value loading" id="kpiEgresos-valor">Cargando…</span>
+              <span class="kpi-delta loading" id="kpiEgresos-delta">—</span>
             </div>
-          </div>
 
-          <div class="card">
-            <h3 style="margin-bottom: var(--space-1);">Caja — saldo calculado</h3>
-            <p class="kpi-context" style="margin-bottom: var(--space-4);">Automático: Aportaciones − Egresos</p>
-            <div class="caja-total" id="cajaTotal">—</div>
-            <div id="cajaResumen"></div>
-          </div>
-        </section>
+            <div class="card kpi-card">
+              <span class="kpi-label">Utilidad neta</span>
+              <span class="kpi-value loading" id="kpiUtilidad-valor">Cargando…</span>
+              <span class="kpi-delta loading" id="kpiUtilidad-delta">—</span>
+              <span class="kpi-context" id="kpiMargenContexto"></span>
+            </div>
+          </section>
 
-        <!-- Capital aportado por socios -->
-        <section class="card section-spacer">
-          <h3 style="margin-bottom: var(--space-2);">Capital aportado por socios</h3>
-          <div class="caja-total" id="capitalTotal">—</div>
-          <p class="kpi-context" id="capitalVerificacion" style="margin-bottom: var(--space-4);"></p>
-          <div id="capitalDesglose"></div>
-        </section>
+          <section class="finance-grid">
+            <div class="card chart-card">
+              <div class="chart-card-header">
+                <h3>Tendencia anual — Ingresos vs Egresos</h3>
+                <span class="text-tertiary" style="font-size: var(--text-xs);">Últimos 12 meses</span>
+              </div>
+              <div class="chart-canvas-wrap">
+                <canvas id="graficaAnual"></canvas>
+              </div>
+            </div>
 
-        <!-- Resumen histórico de gastos -->
-        <section class="section-spacer">
-          <h2 style="margin-bottom: var(--space-5);">Resumen histórico de gastos</h2>
+            <div class="card">
+              <h3 style="margin-bottom: var(--space-1);">Caja — saldo calculado</h3>
+              <p class="kpi-context" style="margin-bottom: var(--space-4);">Automático: Aportaciones − Egresos</p>
+              <div class="caja-total" id="cajaTotal">—</div>
+              <div id="cajaResumen"></div>
+            </div>
+          </section>
+
+          <section class="card">
+            <h3 style="margin-bottom: var(--space-2);">Capital aportado por socios</h3>
+            <div class="caja-total" id="capitalTotal">—</div>
+            <p class="kpi-context" id="capitalVerificacion" style="margin-bottom: var(--space-4);"></p>
+            <div id="capitalDesglose"></div>
+          </section>
+        </div>
+
+        <!-- ============ PESTAÑA: GASTOS ============ -->
+        <div data-subtab-panel="gastos" class="subtab-panel">
+
           <div id="historicoKpis" class="section-spacer"></div>
 
           <div class="finance-grid">
             <div class="card chart-card">
-              <div class="chart-card-header">
-                <h3>Distribución de gastos por categoría</h3>
-              </div>
+              <div class="chart-card-header"><h3>Distribución de gastos por categoría</h3></div>
               <div class="chart-canvas-wrap" style="height: 320px;">
                 <canvas id="graficaDonaCategorias"></canvas>
               </div>
             </div>
 
             <div class="card chart-card" id="gaugePresupuestoCard">
-              <div class="chart-card-header">
-                <h3>Presupuesto usado</h3>
-              </div>
+              <div class="chart-card-header"><h3>Presupuesto usado</h3></div>
               <div id="gaugePresupuesto" style="padding-top: var(--space-6);"></div>
             </div>
           </div>
 
           <div class="card chart-card section-spacer">
-            <div class="chart-card-header">
-              <h3>Gastos fijos vs. variables</h3>
-            </div>
+            <div class="chart-card-header"><h3>Gastos fijos vs. variables</h3></div>
             <div class="chart-canvas-wrap" style="height: 160px;">
               <canvas id="graficaFijosVariables"></canvas>
             </div>
           </div>
 
-          <div class="card">
+          <div class="card section-spacer">
             <h3 style="margin-bottom: var(--space-5);">Historial de gastos</h3>
             <div id="historialGastos"></div>
           </div>
-        </section>
 
-        <!-- Estado de resultados -->
-        <section class="card section-spacer">
-          <h3 style="margin-bottom: var(--space-5);">Estado de resultados — Egresos por categoría</h3>
-          <div id="estadoResultados"></div>
-        </section>
+          <div class="card">
+            <h3 style="margin-bottom: var(--space-5);">Estado de resultados — Egresos por categoría</h3>
+            <div id="estadoResultados"></div>
+          </div>
+        </div>
 
-        <!-- Presupuesto vs Real -->
-        <section class="card section-spacer">
-          <h3 style="margin-bottom: var(--space-5);">Presupuesto vs. Real</h3>
-          <div id="presupuestoContenido"></div>
-        </section>
+        <!-- ============ PESTAÑA: MOVIMIENTOS ============ -->
+        <div data-subtab-panel="movimientos" class="subtab-panel">
+          <section class="card">
+            <h3 style="margin-bottom: var(--space-5);">Movimientos — Ingresos y Egresos</h3>
+            <div id="tablaMovimientos"></div>
+          </section>
+        </div>
 
-        <!-- Movimientos -->
-        <section class="card">
-          <h3 style="margin-bottom: var(--space-5);">Movimientos — Ingresos y Egresos</h3>
-          <div id="tablaMovimientos"></div>
-        </section>
+        <!-- ============ PESTAÑA: PRESUPUESTO ============ -->
+        <div data-subtab-panel="presupuesto" class="subtab-panel">
+          <section class="card">
+            <h3 style="margin-bottom: var(--space-5);">Presupuesto vs. Real</h3>
+            <div id="presupuestoContenido"></div>
+          </section>
+        </div>
 
       </div>
     </div>
@@ -230,6 +228,7 @@
   <script src="../js/finance.js"></script>
   <script>
     document.getElementById('btnCerrarSesion').addEventListener('click', cerrarSesion);
+    inicializarSubtabs('finSubtabs');
   </script>
 
 </body>

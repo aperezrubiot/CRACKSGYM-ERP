@@ -1,11 +1,14 @@
 /**
  * CRACKSGYM ERP — simulator.js
  * ------------------------------------------------------------------
- * Simulador de escenarios de negocio. A DIFERENCIA del resto del ERP,
- * esta pantalla NO refleja datos reales del Sheet — son proyecciones
- * hipotéticas que tú controlas con los inputs. El historial de
- * simulaciones se guarda en localStorage (por navegador), no en Sheets,
- * precisamente para no mezclar proyecciones con contabilidad real.
+ * Simulador de escenarios. Los inputs de proyección (Inscritos, Meta,
+ * Precio, etc.) y los gastos detallados se guardan en localStorage —
+ * así NO se reinician a cero al navegar entre páginas o recargar.
+ *
+ * La pestaña "Punto de equilibrio" compara la proyección contra datos
+ * REALES de Finanzas (INGRESOS/EGRESOS del Sheet) — es la única parte
+ * del Simulador que sí toca datos reales, a propósito, para que puedas
+ * ver qué tan cerca vas de tu propio plan.
  *
  * Depende de api.js, auth.js, utils.js, shell.js, charts.js y tabla.js.
  * ------------------------------------------------------------------
@@ -15,22 +18,34 @@ document.addEventListener('DOMContentLoaded', async () => {
   requerirSesion();
   pintarUsuarioEnSidebar();
   inicializarSidebarMovil();
+  inicializarSubtabs('simSubtabs');
   await inicializarSimulador();
 });
 
 async function inicializarSimulador() {
-  // Prellena "Inscritos" con el conteo real de SOCIOS si ya existe alguno —
-  // así el punto de partida de la simulación no es 100% inventado.
+  cargarParametrosEnInputs();
+
+  // Prellena "Inscritos" con el conteo real de SOCIOS solo si el campo
+  // sigue en su default de 0 (no pisa un escenario que ya guardaste).
   try {
     const socios = await obtenerSocios();
-    if (socios.length > 0) {
+    const actuales = obtenerParametrosSimulador();
+    if (socios.length > 0 && actuales.inscritos === 0) {
       document.getElementById('simInscritos').value = socios.length;
+      guardarInputsActuales();
     }
   } catch {
-    // Sin bloquear: si SOCIOS no existe todavía, el simulador sigue con el default.
+    // No bloquea si SOCIOS no existe todavía.
   }
 
-  document.getElementById('btnActualizarSimulacion').addEventListener('click', calcularSimulacion);
+  // Cualquier cambio en un input de parámetros se guarda solo y recalcula
+  document.querySelectorAll('#simParametrosForm input').forEach((input) => {
+    input.addEventListener('input', () => {
+      guardarInputsActuales();
+      calcularSimulacion();
+    });
+  });
+
   document.getElementById('btnGuardarSimulacion').addEventListener('click', guardarSimulacionActual);
   document.getElementById('btnBorrarHistorial').addEventListener('click', () => {
     if (confirm('¿Borrar todo el historial de simulaciones guardadas en este navegador? No afecta tus datos reales de Sheets.')) {
@@ -40,8 +55,23 @@ async function inicializarSimulador() {
   });
 
   inicializarTablaGastosSimulados();
+  await cargarComparacionReal();
   calcularSimulacion();
   renderizarHistorialSimulaciones();
+}
+
+function cargarParametrosEnInputs() {
+  const p = obtenerParametrosSimulador();
+  document.getElementById('simInscritos').value = p.inscritos;
+  document.getElementById('simMeta').value = p.meta;
+  document.getElementById('simPrecio').value = p.precio;
+  document.getElementById('simPctDomiciliados').value = p.pctDomiciliados;
+  document.getElementById('simPctComisionDom').value = p.pctComisionDom;
+  document.getElementById('simPctComisionNoDom').value = p.pctComisionNoDom;
+}
+
+function guardarInputsActuales() {
+  guardarParametrosSimulador(leerInputsSimulador());
 }
 
 function leerInputsSimulador() {
@@ -62,8 +92,6 @@ function calcularSimulacion() {
   const noDomiciliados = inp.inscritos - domiciliados;
   const ingresoBruto = inp.inscritos * inp.precio;
 
-  // Comisión bancaria se cobra en TODAS las transacciones (todo pasa por
-  // terminal), pero domiciliados y no domiciliados tienen tasas distintas.
   const comisionesDom = domiciliados * inp.precio * (inp.pctComisionDom / 100);
   const comisionesNoDom = noDomiciliados * inp.precio * (inp.pctComisionNoDom / 100);
   const comisiones = comisionesDom + comisionesNoDom;
@@ -73,8 +101,6 @@ function calcularSimulacion() {
   const cumplimientoMeta = inp.meta > 0 ? (inp.inscritos / inp.meta) * 100 : 0;
   const pctNoDomiciliados = inp.inscritos > 0 ? (noDomiciliados / inp.inscritos) * 100 : 0;
 
-  // Gastos fijos/variables ya NO son un número suelto — se suman desde
-  // la lista detallada de conceptos (ver renderizarTablaGastosSimulados).
   const gastosSimulados = obtenerGastosSimulados();
   const gastosFijos = gastosSimulados.filter(g => g.tipo === 'Fijo').reduce((s, g) => s + (Number(g.monto) || 0), 0);
   const gastosVariables = gastosSimulados.filter(g => g.tipo === 'Variable').reduce((s, g) => s + (Number(g.monto) || 0), 0);
@@ -145,7 +171,6 @@ function pintarBarrasProgreso(r) {
   if (pctNoDomText) pctNoDomText.textContent = `${r.pctNoDomiciliados.toFixed(1)}%`;
 }
 
-/** Dibuja una barra de progreso simple (no gauge) dentro de un contenedor */
 function pintarBarraProgreso(contenedorId, porcentaje, contexto, color) {
   const el = document.getElementById(contenedorId);
   if (!el) return;
@@ -169,7 +194,48 @@ function pintarPuntoEquilibrio(r) {
 }
 
 /* ---------------------------------------------------------------------
-   Tabla editable de gastos detallados (dentro del <details> colapsable)
+   Comparación contra datos REALES — única parte del Simulador que toca
+   Sheets de verdad. Vive dentro de la pestaña "Punto de equilibrio".
+   --------------------------------------------------------------------- */
+async function cargarComparacionReal() {
+  const contenedor = document.getElementById('simComparacionReal');
+
+  try {
+    const [ingresos, egresos] = await Promise.all([obtenerIngresos(), obtenerEgresos()]);
+
+    const hoy = new Date();
+    const ingresosMesReal = sumarPorMes(ingresos, hoy.getFullYear(), hoy.getMonth());
+    const egresosMesReal = sumarPorMes(egresos, hoy.getFullYear(), hoy.getMonth());
+    const utilidadReal = ingresosMesReal - egresosMesReal;
+
+    const inp = leerInputsSimulador();
+    const proyectadoIngresoNeto = calcularSimulacion().ingresoNeto;
+
+    contenedor.innerHTML = `
+      <div class="kpi-grid">
+        <div class="card kpi-card">
+          <span class="kpi-label">Ingresos reales del mes</span>
+          <span class="kpi-value">${formatoMoneda(ingresosMesReal)}</span>
+          <span class="kpi-context">vs. ${formatoMoneda(proyectadoIngresoNeto)} proyectado</span>
+        </div>
+        <div class="card kpi-card">
+          <span class="kpi-label">Egresos reales del mes</span>
+          <span class="kpi-value">${formatoMoneda(egresosMesReal)}</span>
+        </div>
+        <div class="card kpi-card">
+          <span class="kpi-label">Utilidad real del mes</span>
+          <span class="kpi-value ${utilidadReal >= 0 ? 'text-success' : 'text-danger'}">${formatoMoneda(utilidadReal)}</span>
+          <span class="kpi-context">Datos reales de Finanzas — no proyección</span>
+        </div>
+      </div>
+    `;
+  } catch (error) {
+    contenedor.innerHTML = `<p class="table-empty">No se pudo cargar la comparación real: ${error.message}</p>`;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Tabla editable de gastos detallados
    --------------------------------------------------------------------- */
 function renderizarTablaGastosSimulados() {
   const gastos = obtenerGastosSimulados();
@@ -204,7 +270,6 @@ function inicializarTablaGastosSimulados() {
 
   document.getElementById('simGastosFiltro').addEventListener('input', renderizarTablaGastosSimulados);
 
-  // Delegación de eventos: un solo listener para todos los inputs/botones de la tabla
   document.getElementById('simGastosCuerpo').addEventListener('change', (e) => {
     if (!e.target.classList.contains('sim-gasto-monto')) return;
     const id = e.target.dataset.id;
@@ -265,7 +330,7 @@ function renderizarHistorialSimulaciones() {
   const contenedor = document.getElementById('simHistorial');
 
   if (historial.length === 0) {
-    contenedor.innerHTML = '<p class="table-empty">Todavía no has guardado ninguna simulación. Usa el botón "Guardar en historial" de arriba.</p>';
+    contenedor.innerHTML = '<p class="table-empty">Todavía no has guardado ninguna simulación. Usa el botón "Guardar en historial" en la pestaña Proyección.</p>';
     return;
   }
 

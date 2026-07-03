@@ -85,26 +85,9 @@ function renderizarKPIsFinanzas(ingresos, egresos) {
   pintarKPI('kpiEgresos', egresosMes, calcularDelta(egresosMes, egresosMesAnt), true);
   pintarKPI('kpiUtilidad', utilidadMes, calcularDelta(utilidadMes, utilidadMesAnt));
   document.getElementById('kpiMargenContexto').textContent = `Margen: ${margenMes.toFixed(1)}%`;
-
-  // Punto de equilibrio simplificado: no distinguimos costos fijos de
-  // variables (esa granularidad no está en el Sheet todavía), así que
-  // se aproxima como "ingresos necesarios para cubrir el total de egresos
-  // del mes". Es una aproximación, no un cálculo de punto de equilibrio
-  // en el sentido estricto de costo-volumen-utilidad.
-  const alcanzado = egresosMes > 0 ? (ingresosMes / egresosMes) * 100 : (ingresosMes > 0 ? 100 : 0);
-  const valorEl = document.getElementById('kpiEquilibrio-valor');
-  const deltaEl = document.getElementById('kpiEquilibrio-delta');
-  valorEl.textContent = `${Math.min(alcanzado, 999).toFixed(0)}%`;
-  valorEl.classList.remove('loading');
-  deltaEl.classList.remove('loading');
-
-  if (alcanzado >= 100) {
-    deltaEl.textContent = `Superado por ${formatoMoneda(ingresosMes - egresosMes)}`;
-    deltaEl.className = 'kpi-delta kpi-delta-up';
-  } else {
-    deltaEl.textContent = `Faltan ${formatoMoneda(egresosMes - ingresosMes)} para cubrir egresos`;
-    deltaEl.className = 'kpi-delta kpi-delta-down';
-  }
+  // Nota: el Punto de equilibrio se movió al Simulador (pestaña "Punto de
+  // equilibrio"), donde se compara contra la proyección de gastos fijos/
+  // variables reales, en vez de la aproximación simple que vivía aquí.
 }
 
 /* ---------------------------------------------------------------------

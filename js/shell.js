@@ -61,3 +61,37 @@ function pintarKPI(idBase, valor, delta, invertirColor = false) {
   elementoDelta.textContent = `${flecha} ${Math.abs(delta).toFixed(1)}% vs mes anterior`;
   elementoDelta.className = `kpi-delta ${esBueno ? 'kpi-delta-up' : 'kpi-delta-down'}`;
 }
+
+/**
+ * Inicializa un grupo de sub-pestañas dentro de una página (Finanzas,
+ * Simulador). Espera botones con [data-subtab="clave"] y paneles con
+ * [data-subtab-panel="clave"] dentro de un mismo contenedor.
+ * @param {string} contenedorId - el <nav> o <div> que envuelve los botones
+ */
+function inicializarSubtabs(contenedorId) {
+  const nav = document.getElementById(contenedorId);
+  if (!nav) return;
+
+  const botones = nav.querySelectorAll('[data-subtab]');
+
+  botones.forEach((boton) => {
+    boton.addEventListener('click', () => {
+      const clave = boton.dataset.subtab;
+
+      botones.forEach((b) => b.classList.remove('active'));
+      boton.classList.add('active');
+
+      document.querySelectorAll('[data-subtab-panel]').forEach((panel) => {
+        panel.classList.toggle('active', panel.dataset.subtabPanel === clave);
+      });
+
+      // Recuerda la última pestaña vista en esta página, por si el usuario recarga
+      sessionStorage.setItem(`subtab_${contenedorId}`, clave);
+    });
+  });
+
+  // Restaura la última pestaña vista, si existe
+  const recordada = sessionStorage.getItem(`subtab_${contenedorId}`);
+  const botonRecordado = recordada && nav.querySelector(`[data-subtab="${recordada}"]`);
+  (botonRecordado || botones[0])?.click();
+}

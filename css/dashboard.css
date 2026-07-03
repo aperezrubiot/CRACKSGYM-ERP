@@ -213,6 +213,45 @@
   margin-bottom: var(--space-5);
 }
 
+/* -------------------------------------------------------------------------
+   Sub-pestañas dentro de una página (Finanzas, Simulador)
+   ------------------------------------------------------------------------- */
+.subtabs-nav {
+  display: flex;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-6);
+  overflow-x: auto;
+}
+
+.subtab-btn {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+}
+
+.subtab-btn:hover {
+  color: var(--color-text-primary);
+}
+
+.subtab-btn.active {
+  color: var(--color-accent-bright);
+  border-bottom-color: var(--color-accent);
+}
+
+.subtab-panel {
+  display: none;
+}
+
+.subtab-panel.active {
+  display: block;
+  animation: fade-up var(--duration-base) var(--ease-out) both;
+}
+
 @media (max-width: 880px) {
   .content-area {
     padding: var(--space-5);

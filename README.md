@@ -58,11 +58,12 @@ CRACKSGYM-ERP/
 │   ├── api.js                  → Capa única de acceso a datos (Etapa 2)
 │   ├── auth.js                 → Autenticación y sesión (Etapa 2)
 │   ├── dashboard.js            → Lógica del dashboard ejecutivo ✅ Etapa 3
-│   ├── shell.js                → Sidebar/KPIs compartidos entre módulos ✅ Etapa 5 — tampoco estaba en la lista original
+│   ├── shell.js                → Sidebar/KPIs/sub-pestañas compartidos ✅
 │   ├── charts.js               → Configuración de gráficas Chart.js ✅ Etapa 3
 │   ├── tabla.js                → Motor genérico de tablas (búsqueda/orden) ✅ Etapa 4 — no estaba en la lista original, se agregó por responsabilidad única
 │   ├── finance.js              → Lógica del módulo de finanzas ✅ Etapa 5
 │   ├── simulator.js            → Simulador de escenarios (proyecciones, no datos reales) ✅
+│   ├── corrida.js              → Motor de cohortes mes a mes — corrida financiera / payback ✅ — NUEVO archivo
 │   ├── socios.js               → Lógica del módulo de socios (Etapa 6)
 │   ├── empleados.js            → Lógica del módulo de empleados (Etapa 7)
 │   ├── inventario.js           → Lógica del módulo de inventario (Etapa 8)

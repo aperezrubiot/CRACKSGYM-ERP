@@ -294,6 +294,78 @@ function crearGraficaBarrasVerticales(canvasId, etiquetas, valores, colores) {
 }
 
 /**
+ * Gráfica de líneas genérica con múltiples series comparables (ej. Utilidad
+ * acumulada vs. línea de Inversión objetivo). Más flexible que
+ * crearGraficaTendencia, que está atada a la semántica Ingresos/Egresos.
+ * @param {string} canvasId
+ * @param {string[]} etiquetas
+ * @param {Array<{label:string, data:number[], color:string, dashed?:boolean}>} series
+ */
+function crearGraficaLineasComparativas(canvasId, etiquetas, series) {
+  const contexto = document.getElementById(canvasId).getContext('2d');
+  const existente = Chart.getChart(canvasId);
+  if (existente) existente.destroy();
+
+  return new Chart(contexto, {
+    type: 'line',
+    data: {
+      labels: etiquetas,
+      datasets: series.map((s) => ({
+        label: s.label,
+        data: s.data,
+        borderColor: s.color,
+        backgroundColor: 'transparent',
+        borderWidth: 2,
+        borderDash: s.dashed ? [6, 4] : [],
+        pointRadius: 2,
+        tension: 0.25
+      }))
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          position: 'top',
+          align: 'end',
+          labels: {
+            color: CHART_COLORS.textSecondary,
+            usePointStyle: true,
+            pointStyle: 'circle',
+            boxWidth: 8,
+            font: { family: "'Inter', sans-serif", size: 12 }
+          }
+        },
+        tooltip: {
+          backgroundColor: '#141417',
+          borderColor: 'rgba(255,255,255,0.08)',
+          borderWidth: 1,
+          titleColor: '#F5F5F4',
+          bodyColor: '#9A9AA2',
+          padding: 10,
+          callbacks: { label: (c) => `${c.dataset.label}: ${formatoMoneda(c.parsed.y)}` }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: CHART_COLORS.textSecondary, font: { family: "'Inter', sans-serif", size: 11 }, maxRotation: 0 }
+        },
+        y: {
+          grid: { color: CHART_COLORS.grid },
+          ticks: {
+            color: CHART_COLORS.textSecondary,
+            font: { family: "'Inter', sans-serif", size: 11 },
+            callback: (v) => formatoMoneda(v).replace('.00', '')
+          }
+        }
+      }
+    }
+  });
+}
+
+/**
  * Dibuja un gauge (medidor semicircular) en SVG puro — no usa Chart.js,
  * así que no compite por el mismo <canvas> ni depende del CDN.
  * @param {string} contenedorId - un <div>, no un <canvas>
