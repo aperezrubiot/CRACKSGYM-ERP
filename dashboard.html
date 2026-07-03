@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRACKSGYM ERP — Dashboard</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+  <div class="app-shell">
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <img src="assets/logo/isotipo.png" alt="CRACKS GYM" class="brand-icon">
+        <span class="wordmark">CRACKS<span>GYM</span></span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <span class="nav-section-label">Principal</span>
+
+        <a href="dashboard.html" class="nav-item active">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+          </span>
+          Dashboard
+        </a>
+
+        <a href="pages/finanzas.html" class="nav-item">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </span>
+          Finanzas
+        </a>
+
+        <a href="pages/simulador.html" class="nav-item">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+          </span>
+          Simulador
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="sidebar-user-avatar" id="sidebarUserAvatar">—</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="sidebarUserName">—</div>
+            <div class="sidebar-user-role" id="sidebarUserRole">—</div>
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-full" id="btnCerrarSesion" style="margin-top: var(--space-3);">
+          Cerrar sesión
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <button class="btn btn-secondary sidebar-toggle" id="sidebarToggle" aria-label="Abrir menú">☰</button>
+          <h1>Dashboard Ejecutivo</h1>
+        </div>
+      </header>
+
+      <div class="content-area">
+
+        <div class="dashboard-error" id="dashboardError">
+          <span></span>
+        </div>
+
+        <section class="kpi-grid">
+          <div class="card kpi-card">
+            <span class="kpi-label">Ingresos del mes</span>
+            <span class="kpi-value loading" id="kpiIngresos-valor">Cargando…</span>
+            <span class="kpi-delta loading" id="kpiIngresos-delta">—</span>
+          </div>
+
+          <div class="card kpi-card">
+            <span class="kpi-label">Egresos del mes</span>
+            <span class="kpi-value loading" id="kpiEgresos-valor">Cargando…</span>
+            <span class="kpi-delta loading" id="kpiEgresos-delta">—</span>
+          </div>
+
+          <div class="card kpi-card">
+            <span class="kpi-label">Utilidad neta</span>
+            <span class="kpi-value loading" id="kpiUtilidad-valor">Cargando…</span>
+            <span class="kpi-delta loading" id="kpiUtilidad-delta">—</span>
+            <span class="kpi-context" id="kpiMargenContexto"></span>
+          </div>
+        </section>
+
+        <section class="card chart-card">
+          <div class="chart-card-header">
+            <h3>Tendencia — Ingresos vs Egresos</h3>
+            <span class="text-tertiary" style="font-size: var(--text-xs);">Últimos 6 meses</span>
+          </div>
+          <div class="chart-canvas-wrap">
+            <canvas id="graficaTendencia"></canvas>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+
+  <!-- Orden importa: config -> api -> utils -> auth -> charts -> dashboard -->
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/shell.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script>
+    document.getElementById('btnCerrarSesion').addEventListener('click', cerrarSesion);
+  </script>
+
+</body>
+</html>

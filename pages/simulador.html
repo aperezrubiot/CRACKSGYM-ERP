@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRACKSGYM ERP — Simulador</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/sidebar.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/tables.css">
+  <style>
+    .sim-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-5);
+      margin-bottom: var(--space-8);
+      align-items: start;
+    }
+
+    @media (max-width: 1100px) {
+      .sim-grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .sim-banner {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-4) var(--space-5);
+      background: var(--color-brand-blue-dim);
+      border: 1px solid rgba(0, 54, 197, 0.3);
+      border-radius: var(--radius-md);
+      color: var(--color-text-secondary);
+      font-size: var(--text-sm);
+      margin-bottom: var(--space-6);
+    }
+
+    .field-inline {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-shell">
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <img src="../assets/logo/isotipo.png" alt="CRACKS GYM" class="brand-icon">
+        <span class="wordmark">CRACKS<span>GYM</span></span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <span class="nav-section-label">Principal</span>
+
+        <a href="../dashboard.html" class="nav-item">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+          </span>
+          Dashboard
+        </a>
+
+        <a href="finanzas.html" class="nav-item">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </span>
+          Finanzas
+        </a>
+
+        <a href="simulador.html" class="nav-item active">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+          </span>
+          Simulador
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="sidebar-user-avatar" id="sidebarUserAvatar">—</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="sidebarUserName">—</div>
+            <div class="sidebar-user-role" id="sidebarUserRole">—</div>
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-full" id="btnCerrarSesion" style="margin-top: var(--space-3);">
+          Cerrar sesión
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <button class="btn btn-secondary sidebar-toggle" id="sidebarToggle" aria-label="Abrir menú">☰</button>
+          <h1>Simulador</h1>
+        </div>
+      </header>
+
+      <div class="content-area">
+
+        <div class="sim-banner">
+          <span>🧪</span>
+          <span>Esto es una <strong>proyección hipotética</strong>, no datos reales de tu Sheet. Ajusta los parámetros para explorar escenarios. Se guarda solo en este navegador.</span>
+        </div>
+
+        <!-- Parámetros -->
+        <section class="card section-spacer">
+          <h3 style="margin-bottom: var(--space-5);">Parámetros de simulación</h3>
+          <div class="sim-inputs-grid">
+            <div class="field-inline">
+              <label class="field-label" for="simInscritos">Inscritos</label>
+              <input type="number" id="simInscritos" class="input" value="0" min="0">
+            </div>
+            <div class="field-inline">
+              <label class="field-label" for="simMeta">Meta de socios</label>
+              <input type="number" id="simMeta" class="input" value="800" min="0">
+            </div>
+            <div class="field-inline">
+              <label class="field-label" for="simPrecio">Precio mensual</label>
+              <input type="number" id="simPrecio" class="input" value="399" min="0">
+            </div>
+            <div class="field-inline">
+              <label class="field-label" for="simPctDomiciliados">% Domiciliados</label>
+              <input type="number" id="simPctDomiciliados" class="input" value="81.3" min="0" max="100" step="0.1">
+            </div>
+            <div class="field-inline">
+              <label class="field-label" for="simPctComisionDom">% Comisión — domiciliados</label>
+              <input type="number" id="simPctComisionDom" class="input" value="2.5" min="0" max="100" step="0.1">
+            </div>
+            <div class="field-inline">
+              <label class="field-label" for="simPctComisionNoDom">% Comisión — no domiciliados</label>
+              <input type="number" id="simPctComisionNoDom" class="input" value="3.5" min="0" max="100" step="0.1">
+            </div>
+          </div>
+          <p class="kpi-context" style="margin-bottom: var(--space-4);">La comisión se cobra en todas las transacciones (todo pasa por terminal); domiciliados y no domiciliados pueden tener tasas distintas.</p>
+          <div class="flex gap-3">
+            <button class="btn btn-primary" id="btnActualizarSimulacion">Actualizar simulación</button>
+            <button class="btn btn-secondary" id="btnGuardarSimulacion">Guardar en historial</button>
+          </div>
+        </section>
+
+        <!-- KPIs -->
+        <section class="kpi-grid">
+          <div class="card kpi-card">
+            <span class="kpi-label">Inscritos</span>
+            <span class="kpi-value" id="simKpiInscritos">—</span>
+            <span class="kpi-context" id="simKpiInscritosContexto"></span>
+          </div>
+          <div class="card kpi-card">
+            <span class="kpi-label">Precio mensual</span>
+            <span class="kpi-value" id="simKpiPrecio">—</span>
+            <span class="kpi-context">Cuota mensual vigente</span>
+          </div>
+          <div class="card kpi-card">
+            <span class="kpi-label">Ingreso bruto</span>
+            <span class="kpi-value" id="simKpiBruto">—</span>
+          </div>
+          <div class="card kpi-card">
+            <span class="kpi-label">Ingreso neto</span>
+            <span class="kpi-value" id="simKpiNeto">—</span>
+            <span class="kpi-context" id="simKpiNetoContexto"></span>
+          </div>
+          <div class="card kpi-card">
+            <span class="kpi-label">Comisiones bancarias</span>
+            <span class="kpi-value" id="simKpiComisiones">—</span>
+          </div>
+          <div class="card kpi-card">
+            <span class="kpi-label">Domiciliados</span>
+            <span class="kpi-value" id="simKpiDomiciliados">—</span>
+          </div>
+          <div class="card kpi-card">
+            <span class="kpi-label">No domiciliados</span>
+            <span class="kpi-value" id="simKpiNoDomiciliados">—</span>
+          </div>
+          <div class="card kpi-card">
+            <span class="kpi-label">Ticket promedio</span>
+            <span class="kpi-value" id="simKpiTicket">—</span>
+          </div>
+        </section>
+
+        <!-- Gráficas -->
+        <section class="sim-grid-2">
+          <div class="card chart-card">
+            <div class="chart-card-header"><h3>Distribución de socios</h3></div>
+            <div class="chart-canvas-wrap" style="height: 280px;"><canvas id="simGraficaDona"></canvas></div>
+          </div>
+          <div class="card chart-card">
+            <div class="chart-card-header"><h3>Composición de ingresos</h3></div>
+            <div class="chart-canvas-wrap" style="height: 280px;"><canvas id="simGraficaComposicion"></canvas></div>
+          </div>
+        </section>
+
+        <!-- Meta y domiciliación -->
+        <section class="sim-grid-2">
+          <div class="card chart-card">
+            <div class="chart-card-header"><h3>Cumplimiento de meta</h3></div>
+            <div id="simGaugeMeta" style="padding-top: var(--space-4);"></div>
+          </div>
+          <div class="card">
+            <h3 style="margin-bottom: var(--space-5);">Domiciliación</h3>
+            <div class="progress-row">
+              <div class="progress-row-header">
+                <span class="progress-row-label">% Domiciliados</span>
+                <span class="progress-row-value text-accent" id="simPctDomText">—</span>
+              </div>
+              <div id="simBarraDomiciliados"></div>
+            </div>
+            <div class="progress-row">
+              <div class="progress-row-header">
+                <span class="progress-row-label">% No domiciliados</span>
+                <span class="progress-row-value text-danger" id="simPctNoDomText">—</span>
+              </div>
+              <div id="simBarraNoDomiciliados"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Comparativo -->
+        <section class="card chart-card section-spacer">
+          <div class="chart-card-header"><h3>Comparativo — Inscritos vs. Meta vs. Domiciliación</h3></div>
+          <div class="chart-canvas-wrap" style="height: 220px;"><canvas id="simGraficaComparativo"></canvas></div>
+        </section>
+
+        <!-- Gastos detallados (colapsable) -->
+        <details class="card section-spacer" id="simGastosDetalleCard">
+          <summary style="cursor:pointer; font-family: var(--font-display); font-weight: var(--weight-semibold); font-size: var(--text-lg);">
+            Gastos fijos y variables — detallado (clic para expandir)
+          </summary>
+
+          <div style="margin-top: var(--space-5);">
+            <div class="flex gap-4" style="margin-bottom: var(--space-5);">
+              <div class="card kpi-card" style="flex:1;">
+                <span class="kpi-label">Total gastos fijos</span>
+                <span class="kpi-value" id="simGastosTotalFijos">—</span>
+              </div>
+              <div class="card kpi-card" style="flex:1;">
+                <span class="kpi-label">Total gastos variables</span>
+                <span class="kpi-value" id="simGastosTotalVariables">—</span>
+              </div>
+            </div>
+
+            <div class="table-toolbar">
+              <input type="text" class="input table-search" id="simGastosFiltro" placeholder="Buscar categoría o concepto…">
+              <span class="table-count" id="simGastosConteo"></span>
+            </div>
+            <div class="table-wrap section-spacer">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Tipo</th><th>Categoría</th><th>Concepto</th><th>Monto mensual</th><th></th>
+                  </tr>
+                </thead>
+                <tbody id="simGastosCuerpo"></tbody>
+              </table>
+            </div>
+
+            <h4 style="margin-bottom: var(--space-3); font-size: var(--text-sm);">Agregar concepto nuevo</h4>
+            <div class="sim-inputs-grid" style="grid-template-columns: 140px 1fr 1fr 160px auto; align-items: end;">
+              <div class="field-inline">
+                <label class="field-label" for="simNuevoTipo">Tipo</label>
+                <select id="simNuevoTipo" class="input">
+                  <option value="Fijo">Fijo</option>
+                  <option value="Variable">Variable</option>
+                </select>
+              </div>
+              <div class="field-inline">
+                <label class="field-label" for="simNuevaCategoria">Categoría</label>
+                <input type="text" id="simNuevaCategoria" class="input" placeholder="Ej. Marketing">
+              </div>
+              <div class="field-inline">
+                <label class="field-label" for="simNuevoConcepto">Concepto</label>
+                <input type="text" id="simNuevoConcepto" class="input" placeholder="Ej. Diseño gráfico">
+              </div>
+              <div class="field-inline">
+                <label class="field-label" for="simNuevoMonto">Monto mensual</label>
+                <input type="number" id="simNuevoMonto" class="input" min="0" placeholder="0">
+              </div>
+              <button class="btn btn-primary" id="btnAgregarGasto" style="height:44px;">Agregar</button>
+            </div>
+          </div>
+        </details>
+
+        <!-- Punto de equilibrio -->
+        <section class="card section-spacer">
+          <h3 style="margin-bottom: var(--space-2);">Punto de equilibrio proyectado</h3>
+          <p class="kpi-context" style="margin-bottom: var(--space-5);">Usa los totales capturados arriba en "Gastos fijos y variables — detallado".</p>
+
+          <div class="sim-grid-2" style="margin-top: var(--space-5); margin-bottom: 0;">
+            <div>
+              <div class="kpi-grid" style="grid-template-columns: 1fr; gap: var(--space-4);">
+                <div class="card kpi-card">
+                  <span class="kpi-label">Gastos totales</span>
+                  <span class="kpi-value" id="simKpiGastosTotales">—</span>
+                </div>
+                <div class="card kpi-card">
+                  <span class="kpi-label">Utilidad proyectada</span>
+                  <span class="kpi-value" id="simKpiUtilidadProyectada">—</span>
+                </div>
+                <div class="card kpi-card">
+                  <span class="kpi-label">Socios necesarios para equilibrio</span>
+                  <span class="kpi-value" id="simKpiSociosEquilibrio">—</span>
+                </div>
+              </div>
+            </div>
+            <div class="card chart-card">
+              <div class="chart-card-header"><h3>% de equilibrio cubierto</h3></div>
+              <div id="simGaugeEquilibrio" style="padding-top: var(--space-4);"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Historial -->
+        <section class="card">
+          <div class="flex justify-between items-center" style="margin-bottom: var(--space-5);">
+            <h3>Historial de simulaciones</h3>
+            <button class="btn btn-secondary" id="btnBorrarHistorial" style="height:36px; padding:0 var(--space-4); font-size:var(--text-xs);">Borrar historial</button>
+          </div>
+          <div id="simHistorial"></div>
+        </section>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/shell.js"></script>
+  <script src="../js/charts.js"></script>
+  <script src="../js/tabla.js"></script>
+  <script src="../js/simulator.js"></script>
+  <script>
+    document.getElementById('btnCerrarSesion').addEventListener('click', cerrarSesion);
+  </script>
+
+</body>
+</html>

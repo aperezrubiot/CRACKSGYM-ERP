@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRACKSGYM ERP — Socios (vista previa)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/tables.css">
+  <style>
+    .page-wrap { max-width: 1100px; margin: 0 auto; padding: var(--space-8) var(--space-6); }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-3); }
+  </style>
+</head>
+<body>
+  <main class="page-wrap animate-fade-up">
+    <div class="page-header">
+      <div>
+        <span class="badge badge-accent" style="margin-bottom: var(--space-2); display:inline-flex;">Etapa 4 — vista previa del motor de tablas</span>
+        <h1 class="accent-stripe">Socios</h1>
+      </div>
+      <a href="../dashboard.html" class="btn btn-secondary">← Dashboard</a>
+    </div>
+
+    <p class="text-secondary" style="margin-bottom: var(--space-6);">
+      Esto es una demostración del sistema de tablas reutilizable con tus datos reales de la hoja
+      <code>SOCIOS</code>. El expediente completo, renovaciones, cancelaciones y domiciliaciones
+      se construyen en la Etapa 6 — aquí solo se prueba que buscar y ordenar funcionan.
+    </p>
+
+    <div id="tablaSocios"></div>
+  </main>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/tabla.js"></script>
+  <script>
+    requerirSesion();
+
+    obtenerSocios()
+      .then((datos) => {
+        if (datos.length === 0) {
+          document.getElementById('tablaSocios').innerHTML =
+            '<p class="table-empty">La hoja SOCIOS todavía no tiene registros.</p>';
+          return;
+        }
+
+        // Columnas derivadas automáticamente de las llaves del primer registro —
+        // así esta vista previa no depende de que yo adivine tu esquema exacto.
+        const columnas = Object.keys(datos[0]).map((clave) => ({ clave, etiqueta: clave }));
+
+        crearTabla({
+          contenedorId: 'tablaSocios',
+          columnas,
+          datos,
+          placeholderBusqueda: 'Buscar socio…'
+        });
+      })
+      .catch((error) => {
+        document.getElementById('tablaSocios').innerHTML =
+          `<p class="table-empty">No se pudo cargar SOCIOS: ${error.message}</p>`;
+      });
+  </script>
+</body>
+</html>

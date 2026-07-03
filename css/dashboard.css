@@ -1,0 +1,224 @@
+/* ==========================================================================
+   CRACKSGYM ERP — dashboard.css
+   Header, área de contenido, KPI cards y card de gráfica.
+   Depende de los tokens definidos en main.css.
+   ========================================================================== */
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.top-header {
+  height: var(--header-height);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: 0 var(--space-8);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  background: rgba(10, 10, 11, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 10;
+}
+
+.top-header h1 {
+  font-size: var(--text-lg);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.content-area {
+  padding: var(--space-8);
+  flex: 1;
+}
+
+/* -------------------------------------------------------------------------
+   KPI cards
+   ------------------------------------------------------------------------- */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-5);
+  margin-bottom: var(--space-8);
+}
+
+.kpi-card {
+  display: flex;
+  flex-direction: column;
+  container-type: inline-size;
+  min-width: 0;
+}
+
+.kpi-label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-3);
+}
+
+.kpi-value {
+  font-family: var(--font-mono);
+  /* Se ajusta al ancho real de la card (no al viewport) — nunca se
+     desborda, sin importar qué tan grande sea el número. */
+  font-size: clamp(1.1rem, 11cqw, 2.5rem);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  max-width: 100%;
+}
+
+.kpi-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  margin-top: var(--space-3);
+}
+
+.kpi-delta-up   { color: var(--color-success); }
+.kpi-delta-down { color: var(--color-danger); }
+.kpi-delta-flat { color: var(--color-text-tertiary); }
+
+.kpi-context {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin-top: var(--space-1);
+}
+
+/* Skeleton de carga — evita el "salto" de layout mientras llegan los datos */
+.kpi-value.loading,
+.kpi-delta.loading {
+  color: transparent;
+  background: linear-gradient(90deg, var(--color-surface-hover) 25%, var(--color-border) 50%, var(--color-surface-hover) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  min-width: 90px;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* -------------------------------------------------------------------------
+   Card de gráfica
+   ------------------------------------------------------------------------- */
+.chart-card {
+  padding: var(--space-6);
+}
+
+.chart-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+
+.chart-canvas-wrap {
+  position: relative;
+  height: 300px;
+}
+
+/* -------------------------------------------------------------------------
+   Estado de error de carga
+   ------------------------------------------------------------------------- */
+.dashboard-error {
+  display: none;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-danger-dim);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  border-radius: var(--radius-md);
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-6);
+}
+
+.dashboard-error.visible {
+  display: flex;
+}
+
+/* -------------------------------------------------------------------------
+   Barra de progreso — usada en el Simulador (% domiciliados, etc.)
+   ------------------------------------------------------------------------- */
+.progress-row {
+  margin-bottom: var(--space-5);
+}
+
+.progress-row:last-child {
+  margin-bottom: 0;
+}
+
+.progress-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-2);
+}
+
+.progress-row-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.progress-row-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+}
+
+.progress-track {
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-hover);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width var(--duration-slow) var(--ease-out);
+}
+
+.progress-row-context {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin-top: var(--space-1);
+}
+
+/* Grid de inputs del simulador */
+.sim-inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+@media (max-width: 880px) {
+  .content-area {
+    padding: var(--space-5);
+  }
+
+  .top-header {
+    padding: 0 var(--space-5);
+  }
+}
