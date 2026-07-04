@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function inicializarCorrida() {
-  const contenedorCohortes = document.getElementById('corridaCohortesBase');
+  const contenedorCohortes = document.getElementById('corridaCohortesCuerpo');
   if (!contenedorCohortes) return; // esta página no tiene la pestaña de corrida
 
   cargarConfigEnInputs();
