@@ -330,8 +330,12 @@
                 <input type="number" id="corridaNuevosConstante" class="input" min="0">
               </div>
               <div class="field-inline">
-                <label class="field-label" for="corridaMetaSociosMes12">Meta de socios al mes 12</label>
+                <label class="field-label" for="corridaMetaSociosMes12">Meta de socios</label>
                 <input type="number" id="corridaMetaSociosMes12" class="input" min="0">
+              </div>
+              <div class="field-inline">
+                <label class="field-label" for="corridaMesMeta">Mes objetivo de la meta</label>
+                <input type="number" id="corridaMesMeta" class="input" min="2">
               </div>
               <div class="field-inline">
                 <label class="field-label" for="corridaPrecioEstandar">Precio estándar (mes 2+ y post-bloqueo)</label>
@@ -364,8 +368,13 @@
 
           <section class="kpi-grid">
             <div class="card kpi-card">
-              <span class="kpi-label">Socios estimados al mes 12</span>
+              <span class="kpi-label">Socios en el mes objetivo</span>
               <span class="kpi-value" id="corridaKpiSociosMes12">—</span>
+            </div>
+            <div class="card kpi-card">
+              <span class="kpi-label">Socios al final del horizonte</span>
+              <span class="kpi-value" id="corridaKpiSociosFinal">—</span>
+              <span class="kpi-context">Si esto es igual al de arriba, ya llegó a su techo (equilibrio entre altas y bajas)</span>
             </div>
             <div class="card kpi-card">
               <span class="kpi-label">Recuperación de inversión</span>

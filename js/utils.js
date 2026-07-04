@@ -224,6 +224,7 @@ const CORRIDA_DEFAULT = {
   tasaRenovacion: 70,        // % que renueva mes a mes desde la apertura en adelante
   nuevosConstante: 140,      // calculado para llegar a 1500 en el mes 12, con contrato forzoso en domiciliados
   metaSociosMes12: 1500,
+  mesMeta: 12,               // mes contra el que se calibra "nuevos socios/mes" al recalcular
   precioEstandar: 599,       // precio de cohortes nuevas desde el mes 2, y precio post-bloqueo
   bloqueoPrecioMeses: 12,    // meses que se respeta el precio de entrada
   pctDomiciliados: 75,

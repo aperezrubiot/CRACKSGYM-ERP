@@ -52,6 +52,7 @@ function cargarConfigEnInputs() {
   document.getElementById('corridaTasaRenovacion').value = c.tasaRenovacion;
   document.getElementById('corridaNuevosConstante').value = c.nuevosConstante;
   document.getElementById('corridaMetaSociosMes12').value = c.metaSociosMes12;
+  document.getElementById('corridaMesMeta').value = c.mesMeta;
   document.getElementById('corridaPrecioEstandar').value = c.precioEstandar;
   document.getElementById('corridaBloqueoPrecioMeses').value = c.bloqueoPrecioMeses;
   document.getElementById('corridaPctDomiciliados').value = c.pctDomiciliados;
@@ -65,6 +66,7 @@ function guardarConfigDesdeInputs() {
   cfg.tasaRenovacion = Number(document.getElementById('corridaTasaRenovacion').value) || 0;
   cfg.nuevosConstante = Number(document.getElementById('corridaNuevosConstante').value) || 0;
   cfg.metaSociosMes12 = Number(document.getElementById('corridaMetaSociosMes12').value) || 0;
+  cfg.mesMeta = Number(document.getElementById('corridaMesMeta').value) || 12;
   cfg.precioEstandar = Number(document.getElementById('corridaPrecioEstandar').value) || 0;
   cfg.bloqueoPrecioMeses = Number(document.getElementById('corridaBloqueoPrecioMeses').value) || 12;
   cfg.pctDomiciliados = Number(document.getElementById('corridaPctDomiciliados').value) || 0;
@@ -209,17 +211,18 @@ function obtenerGastosOperativosBase() {
  * mes 2) que hace que el total de activos en el mes 12 se acerque a la meta.
  */
 function calcularNuevosConstanteParaMeta(cfgBase) {
-  let lo = 0, hi = 2000;
+  let lo = 0, hi = 5000;
   const cfg = { ...cfgBase };
+  const mesObjetivo = cfg.mesMeta || 12;
 
   for (let i = 0; i < 40; i++) {
     const medio = (lo + hi) / 2;
     cfg.nuevosConstante = medio;
     const resultados = correrModeloCohortes(cfg);
-    const enMes12 = resultados.find(r => r.mes === 12);
-    const activosMes12 = enMes12 ? enMes12.totalActivos : 0;
+    const enMesObjetivo = resultados.find(r => r.mes === mesObjetivo);
+    const activosEnMes = enMesObjetivo ? enMesObjetivo.totalActivos : 0;
 
-    if (activosMes12 < cfg.metaSociosMes12) lo = medio;
+    if (activosEnMes < cfg.metaSociosMes12) lo = medio;
     else hi = medio;
   }
 
@@ -239,8 +242,12 @@ function ejecutarCorrida() {
 }
 
 function pintarKPIsCorrida(cfg, resultados) {
-  const enMes12 = resultados.find(r => r.mes === 12);
-  document.getElementById('corridaKpiSociosMes12').textContent = enMes12 ? enMes12.totalActivos.toLocaleString('es-MX') : '—';
+  const enMesMeta = resultados.find(r => r.mes === (cfg.mesMeta || 12));
+  document.getElementById('corridaKpiSociosMes12').textContent = enMesMeta ? enMesMeta.totalActivos.toLocaleString('es-MX') : '—';
+
+  const ultimo = resultados[resultados.length - 1];
+  const kpiFinal = document.getElementById('corridaKpiSociosFinal');
+  if (kpiFinal) kpiFinal.textContent = ultimo.totalActivos.toLocaleString('es-MX');
 
   const puntoPayback = resultados.find(r => r.utilidadAcumulada >= cfg.inversionTotal);
   const kpiPayback = document.getElementById('corridaKpiPayback');
@@ -257,7 +264,6 @@ function pintarKPIsCorrida(cfg, resultados) {
     contextoPayback.textContent = 'Prueba subiendo el horizonte o la tasa de renovación';
   }
 
-  const ultimo = resultados[resultados.length - 1];
   document.getElementById('corridaKpiUtilidadFinal').textContent = formatoMoneda(ultimo.utilidadAcumulada);
   document.getElementById('corridaKpiUtilidadFinal').className =
     'kpi-value ' + (ultimo.utilidadAcumulada >= 0 ? 'text-success' : 'text-danger');
