@@ -222,17 +222,19 @@ const CORRIDA_DEFAULT = {
     { mes: 1, precio: 599, nuevos: 100 }
   ],
   tasaRenovacion: 70,        // % que renueva mes a mes desde la apertura en adelante
-  nuevosConstante: 140,      // calculado para llegar a 1500 en el mes 12, con contrato forzoso en domiciliados
-  metaSociosMes12: 1500,
-  mesMeta: 12,               // mes contra el que se calibra "nuevos socios/mes" al recalcular
+  nuevosConstante: 140,      // tu propio estimado de ventas nuevas/mes (ritmo de marketing/ventas)
   precioEstandar: 599,       // precio de cohortes nuevas desde el mes 2, y precio post-bloqueo
-  bloqueoPrecioMeses: 12,    // meses que se respeta el precio de entrada
+  bloqueoPrecioMeses: 12,    // meses que se respeta el precio de entrada (= contrato forzoso domiciliados)
   pctDomiciliados: 75,
   pctComisionDom: 2.5,
   pctComisionNoDom: 3.5,
   pctGastosPreventa: 30,     // % de los gastos operativos normales durante meses -2 y -1
   inversionTotal: 10000000,
-  horizonteMeses: 36
+  horizonteMeses: 36,
+  // Capacidad real del gimnasio — regla de la industria: clientes por m².
+  areaRentada: 598.5,        // 612.5 m² de planta baja − 14 m² del cuarto de control de Soriana
+  areaConstruida: 221.73,    // mezanine interior (cardio + área multifuncional)
+  densidadClientesM2: 5      // clientes por m² — densidad máxima eficiente de la industria
 };
 
 function obtenerCorridaFinanciera() {

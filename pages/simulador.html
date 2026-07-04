@@ -307,18 +307,42 @@
 
           <div class="sim-banner">
             <span>⚠️</span>
-            <span>Modelo: los <strong>domiciliados</strong> tienen contrato forzoso — no cancelan durante sus primeros 12 meses (ahí también se les respeta el precio de entrada). Los <strong>no domiciliados</strong> sí pueden cancelar mes a mes desde que abre el gym, sujetos a la tasa de renovación de abajo.</span>
+            <span>Modelo: los <strong>domiciliados</strong> tienen contrato forzoso — no cancelan durante sus primeros 12 meses (ahí también se les respeta el precio de entrada). Los <strong>no domiciliados</strong> sí pueden cancelar mes a mes desde que abre el gym, sujetos a la tasa de renovación de abajo. <strong>El gimnasio nunca admite más socios de los que caben físicamente</strong> — ver capacidad abajo.</span>
           </div>
 
+          <!-- Capacidad real del gimnasio -->
           <section class="card section-spacer">
             <h3 style="margin-bottom: var(--space-5);">Cohortes iniciales (preventa + primer mes)</h3>
-            <div class="table-wrap section-spacer">
+            <div class="table-wrap">
               <table class="data-table">
                 <thead><tr><th>Mes</th><th>Precio de entrada</th><th>Nuevos socios</th></tr></thead>
                 <tbody id="corridaCohortesCuerpo"></tbody>
               </table>
             </div>
+          </section>
 
+          <section class="card section-spacer">
+            <h3 style="margin-bottom: var(--space-2);">Capacidad del gimnasio</h3>
+            <p class="kpi-context" style="margin-bottom: var(--space-5);">Regla de la industria: clientes por m². Este número es el techo REAL del modelo — nunca se admiten más socios de los que caben.</p>
+            <div class="sim-inputs-grid" id="corridaCapacidadForm">
+              <div class="field-inline">
+                <label class="field-label" for="corridaAreaRentada">m² rentados (utilizables)</label>
+                <input type="number" id="corridaAreaRentada" class="input" min="0" step="0.01">
+              </div>
+              <div class="field-inline">
+                <label class="field-label" for="corridaAreaConstruida">m² construidos (mezanine)</label>
+                <input type="number" id="corridaAreaConstruida" class="input" min="0" step="0.01">
+              </div>
+              <div class="field-inline">
+                <label class="field-label" for="corridaDensidad">Densidad óptima (clientes/m²)</label>
+                <input type="number" id="corridaDensidad" class="input" min="0" step="0.1">
+              </div>
+            </div>
+            <div class="caja-total text-accent" id="corridaCapacidadValor">—</div>
+            <p class="kpi-context" id="corridaCapacidadContexto"></p>
+          </section>
+
+          <section class="card section-spacer">
             <h3 style="margin-bottom: var(--space-5);">Parámetros de crucero (mes 2 en adelante)</h3>
             <div class="sim-inputs-grid" id="corridaParametrosForm">
               <div class="field-inline">
@@ -326,16 +350,8 @@
                 <input type="number" id="corridaTasaRenovacion" class="input" min="0" max="100" step="0.1">
               </div>
               <div class="field-inline">
-                <label class="field-label" for="corridaNuevosConstante">Nuevos socios/mes (constante)</label>
+                <label class="field-label" for="corridaNuevosConstante">Nuevos socios/mes (tu estimado)</label>
                 <input type="number" id="corridaNuevosConstante" class="input" min="0">
-              </div>
-              <div class="field-inline">
-                <label class="field-label" for="corridaMetaSociosMes12">Meta de socios</label>
-                <input type="number" id="corridaMetaSociosMes12" class="input" min="0">
-              </div>
-              <div class="field-inline">
-                <label class="field-label" for="corridaMesMeta">Mes objetivo de la meta</label>
-                <input type="number" id="corridaMesMeta" class="input" min="2">
               </div>
               <div class="field-inline">
                 <label class="field-label" for="corridaPrecioEstandar">Precio estándar (mes 2+ y post-bloqueo)</label>
@@ -362,19 +378,22 @@
                 <input type="number" id="corridaHorizonteMeses" class="input" min="12" max="60">
               </div>
             </div>
-            <button class="btn btn-secondary" id="btnRecalcularNuevosConstante">Recalcular "nuevos socios/mes" para llegar a la meta</button>
+            <button class="btn btn-secondary" id="btnRecalcularNuevosConstante">Calcular ritmo de ventas para llenar el gym en el horizonte</button>
             <p class="kpi-context" style="margin-top: var(--space-3);">Los gastos fijos/variables se toman de la tabla detallada en la pestaña "Punto de equilibrio".</p>
           </section>
 
           <section class="kpi-grid">
             <div class="card kpi-card">
-              <span class="kpi-label">Socios en el mes objetivo</span>
-              <span class="kpi-value" id="corridaKpiSociosMes12">—</span>
-            </div>
-            <div class="card kpi-card">
               <span class="kpi-label">Socios al final del horizonte</span>
               <span class="kpi-value" id="corridaKpiSociosFinal">—</span>
-              <span class="kpi-context">Si esto es igual al de arriba, ya llegó a su techo (equilibrio entre altas y bajas)</span>
+            </div>
+            <div class="card kpi-card">
+              <span class="kpi-label">% de capacidad utilizada</span>
+              <span class="kpi-value" id="corridaKpiPctCapacidad">—</span>
+            </div>
+            <div class="card kpi-card">
+              <span class="kpi-label">Mes en que se llena el gym</span>
+              <span class="kpi-value" id="corridaKpiMesLleno">—</span>
             </div>
             <div class="card kpi-card">
               <span class="kpi-label">Recuperación de inversión</span>

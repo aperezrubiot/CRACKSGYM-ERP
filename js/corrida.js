@@ -4,15 +4,17 @@
  * Motor de la Corrida Financiera: modelo de cohortes mes a mes
  * (preventa + operación) para estimar cuándo se recupera la inversión.
  *
- * NUEVO archivo, no estaba en la lista original — es un motor de
- * cálculo con responsabilidad única y suficientemente grande como para
- * no mezclarlo con simulator.js. Documentado en README.
+ * SIMPLIFICADO: en vez de una "Meta de socios" y un "Mes objetivo"
+ * arbitrarios que había que adivinar, el tope real ahora es la
+ * CAPACIDAD FÍSICA del gimnasio (m² utilizables × clientes por m²).
+ * Es un techo duro en el modelo — nunca se admiten más socios de los
+ * que el gym físicamente soporta, sin importar qué tan alto pongas
+ * "nuevos socios/mes".
  *
- * SIMPLIFICACIÓN IMPORTANTE (avísale al usuario si el resultado no
- * cuadra con lo que espera): cada cohorte mantiene su precio de
- * entrada durante sus primeros `bloqueoPrecioMeses` PAGOS mensuales
- * (contando desde que empezó a pagar en preventa, no desde la
- * apertura). Después de eso, paga el precio estándar vigente.
+ * SIMPLIFICACIÓN DE FACTURACIÓN (avísale al usuario si no cuadra):
+ * cada cohorte mantiene su precio de entrada durante sus primeros
+ * `bloqueoPrecioMeses` PAGOS mensuales (desde que empezó a pagar en
+ * preventa). Después, paga el precio estándar vigente.
  *
  * Depende de utils.js (config), charts.js, tabla.js.
  * ------------------------------------------------------------------
@@ -29,7 +31,7 @@ function inicializarCorrida() {
   cargarConfigEnInputs();
   renderizarTablaCohortesBase();
 
-  document.querySelectorAll('#corridaParametrosForm input').forEach((input) => {
+  document.querySelectorAll('#corridaParametrosForm input, #corridaCapacidadForm input').forEach((input) => {
     input.addEventListener('input', () => {
       guardarConfigDesdeInputs();
       ejecutarCorrida();
@@ -38,7 +40,7 @@ function inicializarCorrida() {
 
   document.getElementById('btnRecalcularNuevosConstante').addEventListener('click', () => {
     const cfg = obtenerCorridaFinanciera();
-    cfg.nuevosConstante = calcularNuevosConstanteParaMeta(cfg);
+    cfg.nuevosConstante = calcularNuevosConstanteParaLlenar(cfg);
     guardarCorridaFinanciera(cfg);
     cargarConfigEnInputs();
     ejecutarCorrida();
@@ -51,29 +53,36 @@ function cargarConfigEnInputs() {
   const c = obtenerCorridaFinanciera();
   document.getElementById('corridaTasaRenovacion').value = c.tasaRenovacion;
   document.getElementById('corridaNuevosConstante').value = c.nuevosConstante;
-  document.getElementById('corridaMetaSociosMes12').value = c.metaSociosMes12;
-  document.getElementById('corridaMesMeta').value = c.mesMeta;
   document.getElementById('corridaPrecioEstandar').value = c.precioEstandar;
   document.getElementById('corridaBloqueoPrecioMeses').value = c.bloqueoPrecioMeses;
   document.getElementById('corridaPctDomiciliados').value = c.pctDomiciliados;
   document.getElementById('corridaPctGastosPreventa').value = c.pctGastosPreventa;
   document.getElementById('corridaInversionTotal').value = c.inversionTotal;
   document.getElementById('corridaHorizonteMeses').value = c.horizonteMeses;
+  document.getElementById('corridaAreaRentada').value = c.areaRentada;
+  document.getElementById('corridaAreaConstruida').value = c.areaConstruida;
+  document.getElementById('corridaDensidad').value = c.densidadClientesM2;
 }
 
 function guardarConfigDesdeInputs() {
   const cfg = obtenerCorridaFinanciera();
   cfg.tasaRenovacion = Number(document.getElementById('corridaTasaRenovacion').value) || 0;
   cfg.nuevosConstante = Number(document.getElementById('corridaNuevosConstante').value) || 0;
-  cfg.metaSociosMes12 = Number(document.getElementById('corridaMetaSociosMes12').value) || 0;
-  cfg.mesMeta = Number(document.getElementById('corridaMesMeta').value) || 12;
   cfg.precioEstandar = Number(document.getElementById('corridaPrecioEstandar').value) || 0;
   cfg.bloqueoPrecioMeses = Number(document.getElementById('corridaBloqueoPrecioMeses').value) || 12;
   cfg.pctDomiciliados = Number(document.getElementById('corridaPctDomiciliados').value) || 0;
   cfg.pctGastosPreventa = Number(document.getElementById('corridaPctGastosPreventa').value) || 0;
   cfg.inversionTotal = Number(document.getElementById('corridaInversionTotal').value) || 0;
   cfg.horizonteMeses = Number(document.getElementById('corridaHorizonteMeses').value) || 36;
+  cfg.areaRentada = Number(document.getElementById('corridaAreaRentada').value) || 0;
+  cfg.areaConstruida = Number(document.getElementById('corridaAreaConstruida').value) || 0;
+  cfg.densidadClientesM2 = Number(document.getElementById('corridaDensidad').value) || 0;
   guardarCorridaFinanciera(cfg);
+}
+
+/** Capacidad máxima real del gimnasio: (m² rentados + m² construidos) × densidad óptima */
+function calcularCapacidadMaxima(cfg) {
+  return Math.floor((cfg.areaRentada + cfg.areaConstruida) * cfg.densidadClientesM2);
 }
 
 /* ---------------------------------------------------------------------
@@ -110,94 +119,77 @@ function etiquetaMes(m) {
 }
 
 /* ---------------------------------------------------------------------
-   Motor de cohortes
-   --------------------------------------------------------------------- */
-/**
- * Motor de cohortes. Cada cohorte se divide en domiciliados y no
- * domiciliados, porque se comportan distinto:
- *   - Domiciliados: contrato forzoso — NO cancelan durante los primeros
- *     `bloqueoPrecioMeses` meses (ni churn ni cambio de precio). Después
- *     del contrato, quedan sujetos a la tasa de renovación normal.
- *   - No domiciliados: sin contrato — la tasa de renovación les aplica
- *     desde el primer mes de operación (mes 1 en adelante).
- */
+   Motor de cohortes — modelo SECUENCIAL mes a mes con tope de capacidad.
+   Cada mes: 1) decae lo que ya estaba activo, 2) intenta admitir a los
+   nuevos socios deseados de ese mes, PERO nunca más de lo que quepa en
+   la capacidad restante del gimnasio.
+   ------------------------------------------------------------------- */
 function correrModeloCohortes(cfg) {
+  const capacidad = calcularCapacidadMaxima(cfg);
   const meses = [];
   for (let m = -2; m <= cfg.horizonteMeses; m++) meses.push(m);
 
-  const cohortes = cfg.cohortesBase.map(c => ({ ...c }));
-  for (let m = 2; m <= cfg.horizonteMeses; m++) {
-    cohortes.push({ mes: m, precio: cfg.precioEstandar, nuevos: cfg.nuevosConstante });
-  }
-
-  const domActivos = cohortes.map(() => ({}));
-  const noDomActivos = cohortes.map(() => ({}));
-
-  cohortes.forEach((c, idx) => {
-    const nuevosDom = c.nuevos * (cfg.pctDomiciliados / 100);
-    const nuevosNoDom = c.nuevos - nuevosDom;
-
-    let previoDom = 0, previoNoDom = 0;
-
-    meses.forEach((m) => {
-      if (m < c.mes) { domActivos[idx][m] = 0; noDomActivos[idx][m] = 0; return; }
-
-      if (m === c.mes) {
-        domActivos[idx][m] = nuevosDom;
-        noDomActivos[idx][m] = nuevosNoDom;
-        previoDom = nuevosDom;
-        previoNoDom = nuevosNoDom;
-        return;
-      }
-
-      // Domiciliados: sin churn mientras dure el contrato forzoso
-      const dentroDeContrato = (m - c.mes) < cfg.bloqueoPrecioMeses;
-      const valorDom = dentroDeContrato ? previoDom : previoDom * (cfg.tasaRenovacion / 100);
-      domActivos[idx][m] = valorDom;
-      previoDom = valorDom;
-
-      // No domiciliados: churn desde el mes 1 de operación en adelante
-      const retencionNoDom = m >= 1 ? (cfg.tasaRenovacion / 100) : 1;
-      const valorNoDom = previoNoDom * retencionNoDom;
-      noDomActivos[idx][m] = valorNoDom;
-      previoNoDom = valorNoDom;
-    });
-  });
-
+  const colaBase = cfg.cohortesBase.map(c => ({ ...c }));
+  let cohortesActivas = []; // { mesEntrada, precio, dom, noDom }
   let utilidadAcumulada = 0;
+  let mesLleno = null;
 
-  return meses.map((m) => {
-    let totalActivos = 0, ingresoBruto = 0, comisiones = 0, nuevosDelMes = 0;
+  const resultados = meses.map((m) => {
+    cohortesActivas.forEach((c) => {
+      if (m === c.mesEntrada) return;
+      const dentroDeContrato = (m - c.mesEntrada) < cfg.bloqueoPrecioMeses;
+      c.dom = dentroDeContrato ? c.dom : c.dom * (cfg.tasaRenovacion / 100);
+      const retencionNoDom = m >= 1 ? (cfg.tasaRenovacion / 100) : 1;
+      c.noDom = c.noDom * retencionNoDom;
+    });
 
-    cohortes.forEach((c, idx) => {
-      const dom = domActivos[idx][m];
-      const noDom = noDomActivos[idx][m];
-      const activosCohorte = dom + noDom;
-      totalActivos += activosCohorte;
-      if (c.mes === m) nuevosDelMes += c.nuevos;
+    const totalTrasDecay = cohortesActivas.reduce((s, c) => s + c.dom + c.noDom, 0);
 
-      if (activosCohorte > 0) {
-        const dentroDeBloqueo = (m - c.mes) < cfg.bloqueoPrecioMeses;
+    const baseDeEsteMes = colaBase.find(c => c.mes === m);
+    const deseados = baseDeEsteMes ? baseDeEsteMes.nuevos : (m >= 2 ? cfg.nuevosConstante : 0);
+    const precioEntrada = baseDeEsteMes ? baseDeEsteMes.precio : cfg.precioEstandar;
+
+    const espacioDisponible = Math.max(0, capacidad - totalTrasDecay);
+    const admitidos = Math.min(deseados, espacioDisponible);
+
+    if (admitidos > 0) {
+      cohortesActivas.push({
+        mesEntrada: m,
+        precio: precioEntrada,
+        dom: admitidos * (cfg.pctDomiciliados / 100),
+        noDom: admitidos * (1 - cfg.pctDomiciliados / 100)
+      });
+    }
+
+    let ingresoBruto = 0, comisiones = 0, totalActivos = 0;
+    cohortesActivas.forEach((c) => {
+      const activos = c.dom + c.noDom;
+      totalActivos += activos;
+      if (activos > 0) {
+        const dentroDeBloqueo = (m - c.mesEntrada) < cfg.bloqueoPrecioMeses;
         const precio = dentroDeBloqueo ? c.precio : cfg.precioEstandar;
-        ingresoBruto += activosCohorte * precio;
-        comisiones += dom * precio * (cfg.pctComisionDom / 100) + noDom * precio * (cfg.pctComisionNoDom / 100);
+        ingresoBruto += activos * precio;
+        comisiones += c.dom * precio * (cfg.pctComisionDom / 100) + c.noDom * precio * (cfg.pctComisionNoDom / 100);
       }
     });
+
+    if (mesLleno === null && totalActivos >= capacidad - 1) mesLleno = m;
 
     const ingresoNeto = ingresoBruto - comisiones;
-
     const gastosBase = obtenerGastosOperativosBase();
-    const esPreventa = m < 0;
-    const gastosOperativos = esPreventa ? gastosBase * (cfg.pctGastosPreventa / 100) : gastosBase;
-
+    const gastosOperativos = m < 0 ? gastosBase * (cfg.pctGastosPreventa / 100) : gastosBase;
     const utilidadMes = ingresoNeto - gastosOperativos;
     utilidadAcumulada += utilidadMes;
 
     return {
-      mes: m, totalActivos: Math.round(totalActivos), nuevosDelMes,
-      ingresoBruto, comisiones, ingresoNeto, gastosOperativos, utilidadMes, utilidadAcumulada
+      mes: m, totalActivos: Math.round(totalActivos), nuevosDelMes: Math.round(admitidos),
+      capacidad, ingresoBruto, comisiones, ingresoNeto, gastosOperativos, utilidadMes, utilidadAcumulada
     };
   });
+
+  resultados.mesLleno = mesLleno;
+  resultados.capacidad = capacidad;
+  return resultados;
 }
 
 /** Gastos fijos + variables mensuales, tomados de la lista detallada de Punto de equilibrio */
@@ -207,22 +199,21 @@ function obtenerGastosOperativosBase() {
 }
 
 /**
- * Busca por bisección el número constante de nuevos socios/mes (desde el
- * mes 2) que hace que el total de activos en el mes 12 se acerque a la meta.
+ * Busca por bisección el "nuevos socios/mes" mínimo necesario para llenar
+ * la capacidad del gimnasio justo al final del horizonte simulado.
  */
-function calcularNuevosConstanteParaMeta(cfgBase) {
+function calcularNuevosConstanteParaLlenar(cfgBase) {
   let lo = 0, hi = 5000;
   const cfg = { ...cfgBase };
-  const mesObjetivo = cfg.mesMeta || 12;
+  const capacidad = calcularCapacidadMaxima(cfg);
 
   for (let i = 0; i < 40; i++) {
     const medio = (lo + hi) / 2;
     cfg.nuevosConstante = medio;
     const resultados = correrModeloCohortes(cfg);
-    const enMesObjetivo = resultados.find(r => r.mes === mesObjetivo);
-    const activosEnMes = enMesObjetivo ? enMesObjetivo.totalActivos : 0;
+    const ultimo = resultados[resultados.length - 1];
 
-    if (activosEnMes < cfg.metaSociosMes12) lo = medio;
+    if (ultimo.totalActivos < capacidad - 1) lo = medio;
     else hi = medio;
   }
 
@@ -236,18 +227,44 @@ function ejecutarCorrida() {
   const cfg = obtenerCorridaFinanciera();
   const resultados = correrModeloCohortes(cfg);
 
+  pintarCapacidad(cfg);
   pintarKPIsCorrida(cfg, resultados);
   pintarGraficaCorrida(cfg, resultados);
   pintarTablaCorrida(resultados);
 }
 
-function pintarKPIsCorrida(cfg, resultados) {
-  const enMesMeta = resultados.find(r => r.mes === (cfg.mesMeta || 12));
-  document.getElementById('corridaKpiSociosMes12').textContent = enMesMeta ? enMesMeta.totalActivos.toLocaleString('es-MX') : '—';
+function pintarCapacidad(cfg) {
+  const capacidad = calcularCapacidadMaxima(cfg);
+  const el = document.getElementById('corridaCapacidadValor');
+  if (el) el.textContent = capacidad.toLocaleString('es-MX');
+  const contexto = document.getElementById('corridaCapacidadContexto');
+  if (contexto) {
+    const areaTotal = cfg.areaRentada + cfg.areaConstruida;
+    contexto.textContent = `${areaTotal.toLocaleString('es-MX')} m² utilizables × ${cfg.densidadClientesM2} clientes/m²`;
+  }
+}
 
+function pintarKPIsCorrida(cfg, resultados) {
   const ultimo = resultados[resultados.length - 1];
+  const capacidad = resultados.capacidad;
+
   const kpiFinal = document.getElementById('corridaKpiSociosFinal');
   if (kpiFinal) kpiFinal.textContent = ultimo.totalActivos.toLocaleString('es-MX');
+
+  const pctCapacidad = capacidad > 0 ? (ultimo.totalActivos / capacidad) * 100 : 0;
+  const kpiPctCapacidad = document.getElementById('corridaKpiPctCapacidad');
+  if (kpiPctCapacidad) kpiPctCapacidad.textContent = `${pctCapacidad.toFixed(1)}%`;
+
+  const kpiMesLleno = document.getElementById('corridaKpiMesLleno');
+  if (kpiMesLleno) {
+    if (resultados.mesLleno !== null) {
+      kpiMesLleno.textContent = etiquetaMes(resultados.mesLleno);
+      kpiMesLleno.className = 'kpi-value text-accent';
+    } else {
+      kpiMesLleno.textContent = 'No se llena en el horizonte';
+      kpiMesLleno.className = 'kpi-value text-tertiary';
+    }
+  }
 
   const puntoPayback = resultados.find(r => r.utilidadAcumulada >= cfg.inversionTotal);
   const kpiPayback = document.getElementById('corridaKpiPayback');
@@ -261,7 +278,7 @@ function pintarKPIsCorrida(cfg, resultados) {
   } else {
     kpiPayback.textContent = `No se alcanza en ${cfg.horizonteMeses} meses`;
     kpiPayback.className = 'kpi-value text-danger';
-    contextoPayback.textContent = 'Prueba subiendo el horizonte o la tasa de renovación';
+    contextoPayback.textContent = 'Prueba subiendo el horizonte, el ritmo de ventas o la tasa de renovación';
   }
 
   document.getElementById('corridaKpiUtilidadFinal').textContent = formatoMoneda(ultimo.utilidadAcumulada);
@@ -279,8 +296,10 @@ function pintarGraficaCorrida(cfg, resultados) {
     { label: 'Inversión total', data: lineaInversion, color: CHART_COLORS.danger, dashed: true }
   ]);
 
+  const capacidad = resultados.capacidad;
   crearGraficaLineasComparativas('corridaGraficaSocios', etiquetas, [
-    { label: 'Socios activos', data: resultados.map(r => r.totalActivos), color: CHART_COLORS.categorias[1] }
+    { label: 'Socios activos', data: resultados.map(r => r.totalActivos), color: CHART_COLORS.categorias[1] },
+    { label: 'Capacidad máxima', data: resultados.map(() => capacidad), color: CHART_COLORS.danger, dashed: true }
   ]);
 }
 
