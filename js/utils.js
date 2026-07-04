@@ -221,7 +221,7 @@ const CORRIDA_DEFAULT = {
     { mes: 0, precio: 599, nuevos: 0 },
     { mes: 1, precio: 599, nuevos: 100 }
   ],
-  tasaRenovacion: 70,        // % que renueva mes a mes desde la apertura en adelante
+  tasaRenovacion: 95,        // % que renueva mes a mes — punto medio conservador entre el 70% inicial y el 97% de meta oficial (benchmark industria: 95-97%)
   nuevosConstante: 140,      // tu propio estimado de ventas nuevas/mes (ritmo de marketing/ventas)
   precioEstandar: 599,       // precio de cohortes nuevas desde el mes 2, y precio post-bloqueo
   bloqueoPrecioMeses: 12,    // meses que se respeta el precio de entrada (= contrato forzoso domiciliados)
